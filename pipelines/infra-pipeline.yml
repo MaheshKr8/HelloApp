@@ -5,27 +5,14 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-  - task: TerraformInstaller@1
-    inputs:
-      terraformVersion: '1.7.0'
-
-  - task: TerraformTaskV4@4
-    inputs:
-      provider: 'azurerm'
-      command: 'init'
-      workingDirectory: 'infra'
-
-  - task: TerraformTaskV4@4
-    inputs:
-      provider: 'azurerm'
-      command: 'plan'
-      workingDirectory: 'infra'
-
-  - task: TerraformTaskV4@4
-    inputs:
-      provider: 'azurerm'
-      command: 'apply'
-      workingDirectory: 'infra'
-      environmentServiceNameAzureRM: 'my-service-connection'
-      ensureBackend: false
-      args: '-auto-approve'
+- task: AzureResourceManagerTemplateDeployment@3
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: 'my-service-connection'
+    subscriptionId: 'd199062a-9d18-43ed-bee5-666c1b771e79'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: 'RG_helloApp'
+    location: 'Central US'
+    templateLocation: 'URL of the file'
+    csmFileLink: 'main.tf'
+    deploymentMode: 'Complete'
