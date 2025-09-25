@@ -17,10 +17,10 @@ stages:
     displayName: 'Terraform Apply'
     steps:
     # Install Terraform
-    - task: TerraformInstaller@1
+    - task: TerraformInstaller@0
       displayName: 'Install Terraform'
       inputs:
-        terraformVersion: '1.6.0'  # You can choose the required version
+        terraformVersion: '1.7.5'  # You can choose the required version
 
     # Initialize Terraform
     - task: TerraformTaskV4@4
