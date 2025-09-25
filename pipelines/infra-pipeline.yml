@@ -12,7 +12,7 @@ steps:
     subscriptionId: 'd199062a-9d18-43ed-bee5-666c1b771e79'
     action: 'Create Or Update Resource Group'
     resourceGroupName: 'RG_helloApp'
-    location: 'Central US'
+    location: 'East US'
     templateLocation: 'URL of the file'
     csmFileLink: '$(System.DefaultWorkingDirectory)/HelloApp/infra/main.tf'
     deploymentMode: 'Complete'
