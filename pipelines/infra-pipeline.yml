@@ -14,5 +14,5 @@ steps:
     resourceGroupName: 'RG_helloApp'
     location: 'Central US'
     templateLocation: 'URL of the file'
-    csmFileLink: 'main.tf'
+    csmFileLink: '$(System.DefaultWorkingDirectory)/HelloApp/infra/main.tf'
     deploymentMode: 'Complete'
