@@ -19,13 +19,6 @@ stages:
   - job: Deploy
     displayName: 'Run Terraform'
     steps:
-
-    # Install Terraform
-    - task: TerraformInstaller@2
-      displayName: 'Install Terraform'
-      inputs:
-        terraformVersion: 'latest'
-
     # Terraform Init
     - task: TerraformTaskV5@5
       displayName: 'Terraform Init'
