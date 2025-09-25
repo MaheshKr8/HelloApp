@@ -1,18 +1,67 @@
-trigger:
-  - none   # Run manually
+trigger: none  # Run manually
 
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- task: AzureResourceManagerTemplateDeployment@3
-  inputs:
-    deploymentScope: 'Resource Group'
-    azureResourceManagerConnection: 'my-service-connection'
-    subscriptionId: 'd199062a-9d18-43ed-bee5-666c1b771e79'
-    action: 'Create Or Update Resource Group'
-    resourceGroupName: 'RG_helloApp'
-    location: 'East US'
-    templateLocation: 'URL of the file'
-    csmFileLink: '$(System.DefaultWorkingDirectory)/HelloApp/infra/main.tf'
-    deploymentMode: 'Complete'
+variables:
+  azureServiceConnection: 'my-service-connection'  # Your Azure DevOps service connection
+  resourceGroupName: 'RG_helloApp01'
+  location: 'East US'
+  tfWorkingDirectory: 'HelloApp/infra'  # Path where main.tf is located
+
+stages:
+- stage: Terraform_Deploy
+  displayName: 'Terraform AKS Deployment'
+  jobs:
+  - job: Terraform
+    displayName: 'Terraform Apply'
+    steps:
+    # Install Terraform
+    - task: TerraformInstaller@1
+      displayName: 'Install Terraform'
+      inputs:
+        terraformVersion: '1.6.0'  # You can choose the required version
+
+    # Initialize Terraform
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Init'
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(tfWorkingDirectory)'
+        backendType: 'azurerm'
+        ensureBackend: true
+        backendServiceArm: '$(azureServiceConnection)'
+        backendAzureRmResourceGroupName: '$(resourceGroupName)'
+        backendAzureRmStorageAccountName: 'tfstate$(Build.BuildId | toLowerString)'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: 'terraform.tfstate'
+
+    # Plan Terraform
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Plan'
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(tfWorkingDirectory)'
+        environmentServiceNameAzureRM: '$(azureServiceConnection)'
+        ensureBackend: true
+        vars: |
+          resource_group_name=$(resourceGroupName)
+          location=$(location)
+
+    # Apply Terraform
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Apply'
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: '$(tfWorkingDirectory)'
+        environmentServiceNameAzureRM: '$(azureServiceConnection)'
+        ensureBackend: true
+        vars: |
+          resource_group_name=$(resourceGroupName)
+          location=$(location)
+        allowTelemetryCollection: true
+        secureVarsFile: ''
+        forceApply: true
