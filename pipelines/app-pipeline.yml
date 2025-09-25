@@ -23,7 +23,7 @@ steps:
   # Dummy Test Step
   - script: |
       echo "Running dummy tests..."
-      echo "tests passed ✅"
+      echo "tests passed "
     displayName: "Run Dummy Tests"
 
   - task: KubectlInstaller@0
@@ -35,8 +35,8 @@ steps:
     inputs:
       connectionType: 'Azure Resource Manager'
       azureSubscriptionEndpoint: 'my-service-connection'
-      azureResourceGroup: 'devops-rg'
-      kubernetesCluster: 'devops-aks'
+      azureResourceGroup: 'rg-generous-finch'
+      kubernetesCluster: 'cluster-moving-bat'
       namespace: 'default'
       command: apply
       useConfigurationFile: true
