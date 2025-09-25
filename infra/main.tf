@@ -3,7 +3,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "devops-rg"
+  name     = "RG_helloApp01"
   location = "East US"
 }
 
