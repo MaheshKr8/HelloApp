@@ -1,0 +1,5 @@
+# Terraform junk
+.terraform/
+*.tfstate
+*.tfstate.*
+

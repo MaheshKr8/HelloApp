@@ -5,39 +5,62 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  acrName: "devopsacr1234"
+  dockerHubId: "mahesh78e"
   imageName: "hello-world-app"
   tag: "$(Build.BuildId)"
+  dockerfilePath: "app/Dockerfile"
+  k8sManifestPath: "k8s/deployment.yaml"
+  aksNamespace: "default"
+  aksResourceGroup: "rg-generous-finch"
+  aksClusterName: "cluster-moving-bat"
+  #azureServiceConnection: "my-service-connection"
+  aksClusterConnection: "my-aks-service-connection"
+  dockerHubServiceConnection: "my-acr-service-connection"
 
 steps:
-  - task: Docker@2
-    displayName: Build and Push Docker image
-    inputs:
-      command: buildAndPush
-      repository: $(acrName).azurecr.io/$(imageName)
-      dockerfile: app/Dockerfile
-      tags: |
-        $(tag)
-      containerRegistry: 'my-acr-service-connection'
 
-  # Dummy Test Step
-  - script: |
-      echo "Running dummy tests..."
-      echo "tests passed "
-    displayName: "Run Dummy Tests"
+- checkout: self
 
-  - task: KubectlInstaller@0
-    inputs:
-      kubectlVersion: 'latest'
+# Debug repo structure
+- script: |
+    echo "Listing repository contents for debugging..."
+    ls -R
+  displayName: "Debug repo files"
+- script: |
+    echo "Updating deployment.yaml with build tag..."
+    sed -i "s|\$(IMAGE_TAG)|$(tag)|g" $(k8sManifestPath)
+  displayName: "Update deployment.yaml image tag"
 
-  - task: Kubernetes@1
-    displayName: Deploy to AKS
-    inputs:
-      connectionType: 'Azure Resource Manager'
-      azureSubscriptionEndpoint: 'my-service-connection'
-      azureResourceGroup: 'rg-generous-finch'
-      kubernetesCluster: 'cluster-moving-bat'
-      namespace: 'default'
-      command: apply
-      useConfigurationFile: true
-      configuration: 'k8s/deployment.yaml'
+# Build & Push Docker image
+- task: Docker@2
+  displayName: "Build and Push Docker Image to Docker Hub"
+  inputs:
+    command: buildAndPush
+    repository: "$(dockerHubId)/$(imageName)"
+    dockerfile: "$(dockerfilePath)"
+    containerRegistry: "$(dockerHubServiceConnection)"
+    tags: |
+      $(tag)
+
+# Dummy test
+- script: |
+    echo "Running dummy tests..."
+    echo "Tests passed"
+  displayName: "Run Dummy Tests"
+
+# Install kubectl
+- task: KubectlInstaller@0
+  displayName: "Install kubectl"
+  inputs:
+    kubectlVersion: "latest"
+
+# Deploy to AKS
+- task: Kubernetes@1
+  displayName: "Deploy to AKS"
+  inputs:
+    connectionType: "Kubernetes Service Connection"  # instead of AzureRM
+    kubernetesServiceEndpoint: "my-aks-service-connection"
+    namespace: "$(aksNamespace)"
+    command: apply
+    useConfigurationFile: true
+    configuration: "$(k8sManifestPath)"

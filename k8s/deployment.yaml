@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: hello-world
-          image: devopsacr1234.azurecr.io/hello-world-app:latest
+          image: mahesh78e/hello-world-app:$(IMAGE_TAG)
           ports:
             - containerPort: 80
 ---
