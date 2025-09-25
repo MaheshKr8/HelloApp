@@ -9,7 +9,7 @@ HelloApp/
 │   ├── app.py
 │   └── requirements.txt
 ├── infra/
-│   ├── main.tf           # Defines Azure resources (AKS, App Service, etc.)
+│   ├── main.tf           # Defines Azure resources (AKS, or App Service, etc.)
 │   ├── provider.tf       # Configures Azure provider and subscription
 │   ├── variables.tf      # Defines input variables for the infrastructure
 │   ├── outputs.tf        # Defines outputs like AKS kubeconfig or App Service URL
