@@ -3,7 +3,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "RG_helloApp01"
+  name     = "RG_helloApp"
   location = "East US"
 }
 
