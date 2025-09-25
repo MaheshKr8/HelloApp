@@ -1,0 +1,31 @@
+trigger:
+  - none   # Run manually
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: TerraformInstaller@1
+    inputs:
+      terraformVersion: '1.7.0'
+
+  - task: TerraformTaskV4@4
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: 'infra'
+
+  - task: TerraformTaskV4@4
+    inputs:
+      provider: 'azurerm'
+      command: 'plan'
+      workingDirectory: 'infra'
+
+  - task: TerraformTaskV4@4
+    inputs:
+      provider: 'azurerm'
+      command: 'apply'
+      workingDirectory: 'infra'
+      environmentServiceNameAzureRM: 'my-service-connection'
+      ensureBackend: false
+      args: '-auto-approve'

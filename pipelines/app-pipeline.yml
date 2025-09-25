@@ -1,0 +1,43 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  acrName: "devopsacr1234"
+  imageName: "hello-world-app"
+  tag: "$(Build.BuildId)"
+
+steps:
+  - task: Docker@2
+    displayName: Build and Push Docker image
+    inputs:
+      command: buildAndPush
+      repository: $(acrName).azurecr.io/$(imageName)
+      dockerfile: app/Dockerfile
+      tags: |
+        $(tag)
+      containerRegistry: 'my-acr-service-connection'
+
+  # Dummy Test Step
+  - script: |
+      echo "Running dummy tests..."
+      echo "tests passed ✅"
+    displayName: "Run Dummy Tests"
+
+  - task: KubectlInstaller@0
+    inputs:
+      kubectlVersion: 'latest'
+
+  - task: Kubernetes@1
+    displayName: Deploy to AKS
+    inputs:
+      connectionType: 'Azure Resource Manager'
+      azureSubscriptionEndpoint: 'my-service-connection'
+      azureResourceGroup: 'devops-rg'
+      kubernetesCluster: 'devops-aks'
+      namespace: 'default'
+      command: apply
+      useConfigurationFile: true
+      configuration: 'k8s/deployment.yaml'
