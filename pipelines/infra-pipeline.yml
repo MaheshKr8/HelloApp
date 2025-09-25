@@ -1,67 +1,57 @@
-trigger: none  # Run manually
+trigger:
+  branches:
+    include:
+      - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 variables:
-  azureServiceConnection: 'my-service-connection'  # Your Azure DevOps service connection
-  resourceGroupName: 'RG_helloApp01'
-  location: 'East US'
-  tfWorkingDirectory: 'HelloApp/infra'  # Path where main.tf is located
+  azureServiceConnection: 'MyAzureServiceConnection'  # Replace with your Azure service connection name
+  tfWorkingDirectory: 'HelloApp/infra'
+  terraformVersion: '1.7.5'
 
-stages:
-- stage: Terraform_Deploy
-  displayName: 'Terraform AKS Deployment'
-  jobs:
-  - job: Terraform
-    displayName: 'Terraform Apply'
-    steps:
-    # Install Terraform
-    - task: TerraformInstaller@0
-      displayName: 'Install Terraform'
-      inputs:
-        terraformVersion: '1.7.5'  # You can choose the required version
+steps:
 
-    # Initialize Terraform
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Init'
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: '$(tfWorkingDirectory)'
-        backendType: 'azurerm'
-        ensureBackend: true
-        backendServiceArm: '$(azureServiceConnection)'
-        backendAzureRmResourceGroupName: '$(resourceGroupName)'
-        backendAzureRmStorageAccountName: 'tfstate$(Build.BuildId | toLowerString)'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'terraform.tfstate'
+# Step 1: Checkout repo
+- checkout: self
 
-    # Plan Terraform
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Plan'
-      inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        workingDirectory: '$(tfWorkingDirectory)'
-        environmentServiceNameAzureRM: '$(azureServiceConnection)'
-        ensureBackend: true
-        vars: |
-          resource_group_name=$(resourceGroupName)
-          location=$(location)
+# Step 2: Install Terraform using Jason Johnson extension
+- task: JasonBJohnson.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+  displayName: 'Install Terraform'
+  inputs:
+    terraformVersion: $(terraformVersion)
 
-    # Apply Terraform
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Apply'
-      inputs:
-        provider: 'azurerm'
-        command: 'apply'
-        workingDirectory: '$(tfWorkingDirectory)'
-        environmentServiceNameAzureRM: '$(azureServiceConnection)'
-        ensureBackend: true
-        vars: |
-          resource_group_name=$(resourceGroupName)
-          location=$(location)
-        allowTelemetryCollection: true
-        secureVarsFile: ''
-        forceApply: true
+# Step 3: Terraform Init using Jason Johnson extension
+- task: JasonBJohnson.azure-pipelines-tasks-terraform.TerraformTaskV4@4
+  displayName: 'Terraform Init'
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: $(tfWorkingDirectory)
+    backendServiceArm: $(azureServiceConnection)
+    backendAzureRmResourceGroupName: 'tfstate-rg'      # Replace with your RG
+    backendAzureRmStorageAccountName: 'tfstatestorage' # Replace with your Storage Account
+    backendAzureRmContainerName: 'tfstate'             # Replace with your Blob Container
+    backendAzureRmKey: 'terraform.tfstate'
+
+# Step 4: Terraform Plan using Jason Johnson extension
+- task: JasonBJohnson.azure-pipelines-tasks-terraform.TerraformTaskV4@4
+  displayName: 'Terraform Plan'
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    workingDirectory: $(tfWorkingDirectory)
+    environmentServiceNameAzureRM: $(azureServiceConnection)
+    ensureBackend: true
+
+# Step 5: Terraform Apply using Jason Johnson extension
+- task: JasonBJohnson.azure-pipelines-tasks-terraform.TerraformTaskV4@4
+  displayName: 'Terraform Apply'
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    workingDirectory: $(tfWorkingDirectory)
+    environmentServiceNameAzureRM: $(azureServiceConnection)
+    ensureBackend: true
+    args: '-auto-approve'
