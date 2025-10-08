@@ -30,7 +30,7 @@ Docker Hub account
 Login to Azure
 bash
 Copy code
-az login
+az login user1
 az account set --subscription "<your-subscription-id>"
 Create Service Principal for Terraform RBAC
 bash
